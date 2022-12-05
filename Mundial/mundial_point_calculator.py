@@ -318,6 +318,14 @@ def iterate_to_scores(cuartos1, semis1, final1, ganador1, tercero1, grupo1, pers
     return scores
 
 
+cua_passed = {'holanda', 'argentina', 'francia',
+              'inglaterra', 'croacia', 'brasil'}
+
+
+oct_probs = [[0.64, 0.36], [0.88, 0.12], [0.4, 0.6], [0.8, 0.2],
+             [0.75, 0.25], [0.9, 0.1], [0.26, 0.74], [0.67, 0.33]]
+
+
 def permuterest(cuartos, semis, final, ganador, tercero, test_grupo):
 
     person_to_first = {}
@@ -344,76 +352,74 @@ def permuterest(cuartos, semis, final, ganador, tercero, test_grupo):
         cua_set = set(
             [item for innerlist in cuartos_li for item in innerlist])
 
-        semis_li = []
-        for n1 in range(2 ** (len(cuartos_li))):
-            ll = list(bin(n1))[2:]
-            if len(ll) < 4:
-                ll = ([0] * (4 - len(ll))) + ll
-            ll = [int(x) for x in ll]
-            for nnn in range(len(cuartos_li)):
-                if nnn % 2 == 0:
-                    semis_li.append([cuartos_li[nnn][ll[nnn]]])
-                else:
-                    semis_li[nnn // 2].append((cuartos_li[nnn][ll[nnn]]))
+        if (len(cua_set.intersection(cua_passed)) == len(cua_passed)):
 
-            sem_set = set(
-                [item for innerlist in semis_li for item in innerlist])
-            finals_li = []
-            for n2 in range(2 ** (len(semis_li))):
-                lll = list(bin(n2))[2:]
-                if len(lll) < 2:
-                    lll = ([0] * (2 - len(lll))) + lll
-                lll = [int(x) for x in lll]
-                for nnnn in range(len(semis_li)):
-                    if nnnn % 2 == 0:
-                        finals_li.append([semis_li[nnnn][lll[nnnn]]])
+            semis_li = []
+            for n1 in range(2 ** (len(cuartos_li))):
+                ll = list(bin(n1))[2:]
+                if len(ll) < 4:
+                    ll = ([0] * (4 - len(ll))) + ll
+                ll = [int(x) for x in ll]
+                for nnn in range(len(cuartos_li)):
+                    if nnn % 2 == 0:
+                        semis_li.append([cuartos_li[nnn][ll[nnn]]])
                     else:
-                        finals_li[nnnn //
-                                  2].append((semis_li[nnnn][lll[nnnn]]))
-                fin_set = set(
-                    [item for innerlist in finals_li for item in innerlist])
+                        semis_li[nnn // 2].append((cuartos_li[nnn][ll[nnn]]))
 
-                for finalist in fin_set:
+                sem_set = set(
+                    [item for innerlist in semis_li for item in innerlist])
+                finals_li = []
+                for n2 in range(2 ** (len(semis_li))):
+                    lll = list(bin(n2))[2:]
+                    if len(lll) < 2:
+                        lll = ([0] * (2 - len(lll))) + lll
+                    lll = [int(x) for x in lll]
+                    for nnnn in range(len(semis_li)):
+                        if nnnn % 2 == 0:
+                            finals_li.append([semis_li[nnnn][lll[nnnn]]])
+                        else:
+                            finals_li[nnnn //
+                                      2].append((semis_li[nnnn][lll[nnnn]]))
+                    fin_set = set(
+                        [item for innerlist in finals_li for item in innerlist])
 
-                    gan_set = {finalist}
+                    for finalist in fin_set:
 
-                    for third in sem_set.difference(fin_set):
+                        gan_set = {finalist}
 
-                        thr_set = {third}
-                        if (len(cua_set) > 0):
-                            count += 1
-                            scr = iterate_to_scores(cua_set, sem_set, fin_set,
-                                                    gan_set, thr_set, test_grupo, person_to_bracket, False)
+                        for third in sem_set.difference(fin_set):
 
-                            scr.sort(key=operator.itemgetter(
-                                1), reverse=True)
-                            first = scr[0]
-                            last = scr[-1]
+                            thr_set = {third}
+                            if (len(cua_set) > 0):
+                                count += 1
+                                scr = iterate_to_scores(cua_set, sem_set, fin_set,
+                                                        gan_set, thr_set, test_grupo, person_to_bracket, False)
 
-                            if first[0] not in person_to_first:
-                                person_to_first[first[0]] = 1
-                            else:
-                                person_to_first[first[0]] += 1
+                                scr.sort(key=operator.itemgetter(
+                                    1), reverse=True)
+                                first = scr[0]
+                                last = scr[-1]
 
-                            if last[0] not in person_to_last:
-                                person_to_last[last[0]] = 1
-                            else:
-                                person_to_last[last[0]] += 1
+                                if first[0] not in person_to_first:
+                                    person_to_first[first[0]] = 1
+                                else:
+                                    person_to_first[first[0]] += 1
 
-                        # redundant after group stage is over since number of permutations possible drops by a factor of 24**(number of groups remaining)
-                        if count % 100000 == 0 and count > 0:
-                            print(count)
-                            print("--- %s seconds ---" %
-                                  (time.time() - start_time))
+                                if last[0] not in person_to_last:
+                                    person_to_last[last[0]] = 1
+                                else:
+                                    person_to_last[last[0]] += 1
 
-                finals_li.clear()
-            semis_li.clear()
+                            # redundant after group stage is over since number of permutations possible drops by a factor of 24**(number of groups remaining)
+                            if count % 100000 == 0 and count > 0:
+                                print(count)
+                                print("--- %s seconds ---" %
+                                      (time.time() - start_time))
+
+                    finals_li.clear()
+                semis_li.clear()
         cuartos_li.clear()
     return count, person_to_first, person_to_last
-
-
-oct_probs = [[0.64, 0.36], [0.88, 0.12], [0.4, 0.6], [0.8, 0.2],
-             [0.75, 0.25], [0.82, 0.18], [0.26, 0.74], [0.67, 0.33]]
 
 
 def permute_with_prob(cuartos, semis, final, ganador, tercero, test_grupo):
@@ -425,6 +431,7 @@ def permute_with_prob(cuartos, semis, final, ganador, tercero, test_grupo):
 
     orig = [[test_grupo[0][0], test_grupo[1][1]], [test_grupo[2][0], test_grupo[3][1]], [test_grupo[4][0], test_grupo[5][1]], [test_grupo[6][0], test_grupo[7][1]], [
         test_grupo[1][0], test_grupo[0][1]], [test_grupo[3][0], test_grupo[2][1]], [test_grupo[5][0], test_grupo[4][1]], [test_grupo[7][0], test_grupo[6][1]]]
+
     cuartos_li = []
     for n in range(2 ** (len(orig))):
         prob = 1
@@ -444,71 +451,74 @@ def permute_with_prob(cuartos, semis, final, ganador, tercero, test_grupo):
         cua_set = set(
             [item for innerlist in cuartos_li for item in innerlist])
 
-        semis_li = []
-        for n1 in range(2 ** (len(cuartos_li))):
-            ll = list(bin(n1))[2:]
-            if len(ll) < 4:
-                ll = ([0] * (4 - len(ll))) + ll
-            ll = [int(x) for x in ll]
-            for nnn in range(len(cuartos_li)):
-                if nnn % 2 == 0:
-                    semis_li.append([cuartos_li[nnn][ll[nnn]]])
-                else:
-                    semis_li[nnn // 2].append((cuartos_li[nnn][ll[nnn]]))
+        if (len(cua_set.intersection(cua_passed)) == len(cua_passed)):
 
-            sem_set = set(
-                [item for innerlist in semis_li for item in innerlist])
-            finals_li = []
-            for n2 in range(2 ** (len(semis_li))):
-                lll = list(bin(n2))[2:]
-                if len(lll) < 2:
-                    lll = ([0] * (2 - len(lll))) + lll
-                lll = [int(x) for x in lll]
-                for nnnn in range(len(semis_li)):
-                    if nnnn % 2 == 0:
-                        finals_li.append([semis_li[nnnn][lll[nnnn]]])
+            semis_li = []
+            for n1 in range(2 ** (len(cuartos_li))):
+                ll = list(bin(n1))[2:]
+                if len(ll) < 4:
+                    ll = ([0] * (4 - len(ll))) + ll
+                ll = [int(x) for x in ll]
+                for nnn in range(len(cuartos_li)):
+                    if nnn % 2 == 0:
+                        semis_li.append([cuartos_li[nnn][ll[nnn]]])
                     else:
-                        finals_li[nnnn //
-                                  2].append((semis_li[nnnn][lll[nnnn]]))
-                fin_set = set(
-                    [item for innerlist in finals_li for item in innerlist])
+                        semis_li[nnn // 2].append((cuartos_li[nnn][ll[nnn]]))
 
-                for finalist in fin_set:
-                    gan_set = {finalist}
+                sem_set = set(
+                    [item for innerlist in semis_li for item in innerlist])
 
-                    for third in sem_set.difference(fin_set):
+                finals_li = []
+                for n2 in range(2 ** (len(semis_li))):
+                    lll = list(bin(n2))[2:]
+                    if len(lll) < 2:
+                        lll = ([0] * (2 - len(lll))) + lll
+                    lll = [int(x) for x in lll]
+                    for nnnn in range(len(semis_li)):
+                        if nnnn % 2 == 0:
+                            finals_li.append([semis_li[nnnn][lll[nnnn]]])
+                        else:
+                            finals_li[nnnn //
+                                      2].append((semis_li[nnnn][lll[nnnn]]))
+                    fin_set = set(
+                        [item for innerlist in finals_li for item in innerlist])
 
-                        thr_set = {third}
-                        if (len(cua_set) > 0):
-                            count += 1
-                            total_prob += prob/256
+                    for finalist in fin_set:
+                        gan_set = {finalist}
 
-                            scr = iterate_to_scores(cua_set, sem_set, fin_set,
-                                                    gan_set, thr_set, test_grupo, person_to_bracket, False)
+                        for third in sem_set.difference(fin_set):
 
-                            scr.sort(key=operator.itemgetter(
-                                1), reverse=True)
-                            first = scr[0]
-                            last = scr[-1]
+                            thr_set = {third}
+                            if (len(cua_set) > 0):
+                                count += 1
+                                total_prob += prob/256
 
-                            if first[0] not in person_to_first:
-                                person_to_first[first[0]] = prob/256
-                            else:
-                                person_to_first[first[0]] += prob/256
+                                scr = iterate_to_scores(cua_set, sem_set, fin_set,
+                                                        gan_set, thr_set, test_grupo, person_to_bracket, False)
 
-                            if last[0] not in person_to_last:
-                                person_to_last[last[0]] = prob/256
-                            else:
-                                person_to_last[last[0]] += prob/256
+                                scr.sort(key=operator.itemgetter(
+                                    1), reverse=True)
+                                first = scr[0]
+                                last = scr[-1]
 
-                        # redundant after group stage is over since number of permutations possible drops by a factor of 24**(number of groups remaining)
-                        if count % 100000 == 0 and count > 0:
-                            print(count)
-                            print("--- %s seconds ---" %
-                                  (time.time() - start_time))
+                                if first[0] not in person_to_first:
+                                    person_to_first[first[0]] = prob/256
+                                else:
+                                    person_to_first[first[0]] += prob/256
 
-                finals_li.clear()
-            semis_li.clear()
+                                if last[0] not in person_to_last:
+                                    person_to_last[last[0]] = prob/256
+                                else:
+                                    person_to_last[last[0]] += prob/256
+
+                            # redundant after group stage is over since number of permutations possible drops by a factor of 24**(number of groups remaining)
+                            if count % 100000 == 0 and count > 0:
+                                print(count)
+                                print("--- %s seconds ---" %
+                                      (time.time() - start_time))
+
+                    finals_li.clear()
+                semis_li.clear()
         cuartos_li.clear()
     return total_prob, person_to_first, person_to_last
 
@@ -560,7 +570,7 @@ def printpermutes(func):
 
     elif func == permute_with_prob:
         print(
-            "Occurrences coming in first with Round of 16 Probabilities taken into account:")
+            "Occurrences coming in first with Google's Round of 16 Probabilities taken into account:")
         for first in ptf.items():
             print(
                 f"{first[0].split(':')[0]}:{' ' * (11- len(first[0].split(':')[0]))}{round(100*(first[1]/cnt), 3)}%")
@@ -570,9 +580,9 @@ def printpermutes(func):
                 f"{first[0].split(':')[0]}:{' ' * (11- len(first[0].split(':')[0]))}{round(100*(first[1]/cnt), 3)}%")
 
 
-bracket_similarity()
-printpermutes(permuterest)
+# bracket_similarity()
 printpermutes(permute_with_prob)
+printpermutes(permuterest)
 
 # double check slicing of csv's
 players = len(scores)
@@ -611,5 +621,5 @@ for ind, name_score in enumerate(scores):
 
 print("\n* PP: Points Possible")
 
-
+print('\n', cua_passed, '\n')
 print("--- %s seconds ---" % (time.time() - start_time))
